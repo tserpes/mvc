@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>MVC Class example</title>
+	<script type="text/javascript">
+		const studentModel = {
+			state:{},
+			observers:[],
+			addObserver:function(callback){
+				observers.push(callback);
+			},
+			notifyAll:function(){
+				this.observers.forEach((callback)=>{
+					callback(this.state);
+				});
+			},
+			setState:async function(object){
+				const url = `${window.location.origin}/students`;
+				const response = await fetch(url, {
+					'method':'POST',
+					'headers':{'Content-Type':'application/json'},
+					'body':JSON.stringify(object)
+				});
+				this.state = await response.json();
+				this.notifyAll();
+			}
+		};
+
+		const cumulativeModel = {
+			state:{},
+			observers:[],
+			that:this,
+			addObserver:function(callback){
+				this.observers.push(callback);
+			},
+			notifyAll:function(){
+				this.observers.forEach((callback)=>{
+					callback(this.state);
+				});
+			},
+			setState: async function(object){
+				const url = `${window.location.origin}/students/cumulative`;
+				const response = await fetch(url);
+				this.state = await response.json();
+				this.notifyAll();
+			}
+		};
+
+		window.addEventListener('load',(event)=>{
+			cumulativeModel.addObserver(cumulativeViewport);
+			cumulativeModel.setState();
+			document.getElementById('insert').addEventListener('click',(event)=>{
+				studentModel.setState(studentViewport());
+				cumulativeModel.setState();
+			});
+		});
+	</script>
+</head>
+<body>
+	<div class="student">
+		<table>
+			<tr><td>Fist Name</td><td><input type="text" id="fname"></td></tr>
+			<tr><td>Last name</td><td><input type="text" id="lname"></td></tr>
+			<tr><td>ID</td><td><input type="text" id="sid"></td></tr>
+			<tr><td>Admission Year</td><td><input type="text" id="admission_year"></td></tr>
+			<tr><td></td><td><input type="button" id="insert" value="Add new student"></td></tr>
+		</table>
+		<script type="text/javascript">
+			function studentViewport(object){
+				if (object){	//push data
+
+				} else {	//pull data
+					const fname = document.getElementById('fname').value;
+					const lname = document.getElementById('lname').value;
+					const sid = document.getElementById('sid').value;
+					const admission_year = document.getElementById('admission_year').value;
+					return {'fname':fname,'lname':lname,'id':sid,'admission_year':admission_year};
+				}
+			}
+		</script>
+	</div>
+	<div class="cumulative">
+		<table>
+			<tr><td>No of Students</td><td id="count"></td></tr>
+			<tr><td>Average admission year</td><td id="average"></td></tr>
+		</table>
+		<script type="text/javascript">
+			function cumulativeViewport(object){
+				if (object){	//push data
+					document.getElementById('count').textContent = object.count;
+					document.getElementById('average').textContent = object.average;
+				} else {	//pull data
+					
+				}
+			}
+		</script>
+	</div>
+</body>
+</html>
